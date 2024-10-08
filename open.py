@@ -28,6 +28,10 @@ def load_data(filename):
             )
     return products
 
+
+
+
+
 #gör en funktion som hämtar en produkt
 
 def add_product(products, name, desc, price, quantity):
@@ -51,27 +55,34 @@ def add_product(products, name, desc, price, quantity):
     return f"Du lade till {name}, id = {new_id}"
 
   
-def get_product(products, id):
-    for product in products:
-        if product[id] == id:
-            return product
-    return "\nIngen produkt matchar ID\n"
+def get_product(products):
+    while True:
+        answer = int(input("\nVilken plats är varan du vill ändra på?  "))
+
+        if answer <= len(products) and answer >= 0:
+               return answer
+                        
+        
+        else:
+            print("Felaktigt värde")
+            sleep(1)
+    
 
 
-def change_product(products, id, name, desc, price, quantity):
+def change_product(products, number, id, name, desc, price, quantity):
     product_to_edit = None
 
     for product in products:
-        if product['id'] == id:
+        if product['id'] == number:
             product_to_edit = product
 
-    
+    product_to_edit['id'] = id
     product_to_edit['name'] = name
     product_to_edit['desc'] = desc
     product_to_edit['price'] = price
     product_to_edit['quantity'] = quantity
 
-    return f"Ändrade: {id}"
+    return f"Ändrade: {number}"
 
  
 
@@ -129,14 +140,15 @@ locale.setlocale(locale.LC_ALL, 'sv_SE.UTF-8')
 os.system('cls' if os.name == 'nt' else 'clear')
 products = load_data('db_products.csv')
 while True:
+    
+
     try:
         os.system('cls' if os.name == 'nt' else 'clear')
 
         print(view_products(products))  # Show ordered list of products
+
+        choice = input("\nVill du (V)isa, (L)ägga till, (F)örändra eller (T)a bort en produkt? ").strip().upper()
         
-
-        choice = input("Vill du (V)isa, (L)ägga till, (F)örändra eller (T)a bort en produkt? ").strip().upper()
-
         if choice == "L":
             
             name = input("Namn: ")
@@ -148,8 +160,9 @@ while True:
             sleep(1.5)
         
         elif choice == "F":
-            placeholder = get_product(products, id)
+            number = get_product(products)
 
+            id = input("Nytt ID: ")
             name = input("Nytt namn: ")
             desc = input("Ny beskrivning: ")
             price = float(input("Nytt pris: "))
@@ -157,12 +170,12 @@ while True:
 
 
             
-            print(change_product(products, id, name, desc, price, quantity))
+            print(change_product(products, number, id, name, desc, price, quantity))
             sleep(1.5)
 
 
         elif choice in ["V", "T"]:
-            index = int(input("Enter product ID: "))
+            index = int(input("Enter product Number: "))
             
             if choice == "V":   #visa
                 if 1 <= index <= len(products):  # Ensure the index is within the valid range
