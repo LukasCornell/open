@@ -7,25 +7,29 @@ import uuid
 
 def load_data(filename): 
     products = [] 
+    try:
+        with open(filename, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                id = int(row['id'])
+                name = row['name']
+                desc = row['desc']
+                price = float(row['price'])
+                quantity = int(row['quantity'])
+
+                products.append(        #list
+                    {                    #dictionary
+                        "id": id,       
+                        "name": name,
+                        "desc": desc,
+                        "price": price,
+                        "quantity": quantity
+                    }
+                )
+    except ValueError:
+        print("Kan inte hitta filen")
+        sleep(1.5)
     
-    with open(filename, 'r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            id = int(row['id'])
-            name = row['name']
-            desc = row['desc']
-            price = float(row['price'])
-            quantity = int(row['quantity'])
-            
-            products.append(        #list
-                {                    #dictionary
-                    "id": id,       
-                    "name": name,
-                    "desc": desc,
-                    "price": price,
-                    "quantity": quantity
-                }
-            )
     return products
 
 
@@ -85,7 +89,19 @@ def change_product(products, number, id, name, desc, price, quantity):
     return f"Ändrade: {number}"
 
  
+def save_info(products):
+    csv_file_path = "db_products.csv"
 
+        # Write the products data to a CSV file
+    with open(csv_file_path, mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=["id", "name", "desc", "price", "quantity"])
+        writer.writeheader()  # Write the header row
+        writer.writerows(products)  # Write the product data
+    
+    print(f"Data successfully saved to {csv_file_path}")
+    sleep(1)
+
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 
@@ -123,13 +139,28 @@ def view_product(products, id):
 
 
 def view_products(products):
-    product_list = []
-    for index, product in enumerate(products,1 ):
-        product_info = f"{index}) (#{product['id']}) {product['name']} \t {product['desc']} \t {locale.currency(product['price'], grouping=True)}"
-        product_list.append(product_info)
-        max_id = index
+    # skapa sidhuvudet av tabellen:
+    header = f"{'#':<6} {'NAMN':<26} {'BESKRIVNING':<51} {'PRIS':<15} {'KVANTITET':<10}"
+    separator = "-" * 110           #linje
     
-    return "\n".join(product_list)
+    # rader för varje produkt:
+    rows = []
+
+    for index, product in enumerate(products, 1):
+        name = product['name']
+        desc = product['desc']
+        price = product['price']
+        quantity = product['quantity']
+        
+        price = locale.currency(price, grouping=True)
+        row = f"{index:<5} {name:<35} {desc:<70} {price:<14} {quantity:<10}"
+
+        rows.append(row)
+    
+    # kombinera sidhuvud och rader:
+    inventory_table = "\n".join([header, separator] + rows)
+    
+    return f"{inventory_table}"
 
 #TODO: gör om så du slipper använda global-keyword (flytta inte "product = []")
 #TODO: skriv en funktion som returnerar en specifik produkt med hjälp av id
@@ -138,11 +169,13 @@ def view_products(products):
 locale.setlocale(locale.LC_ALL, 'sv_SE.UTF-8')  
 
 os.system('cls' if os.name == 'nt' else 'clear')
+
 products = load_data('db_products.csv')
+
 while True:
-    
 
     try:
+       
         os.system('cls' if os.name == 'nt' else 'clear')
 
         print(view_products(products))  # Show ordered list of products
@@ -158,6 +191,7 @@ while True:
 
             print(add_product(products, name, desc, price, quantity))
             sleep(1.5)
+            save_info(products)
         
         elif choice == "F":
             number = get_product(products)
@@ -172,6 +206,8 @@ while True:
             
             print(change_product(products, number, id, name, desc, price, quantity))
             sleep(1.5)
+            save_info(products)
+
 
 
         elif choice in ["V", "T"]:
@@ -183,10 +219,12 @@ while True:
                     id = selected_product['id']  # Extract the actual ID of the product
                     print(view_product(products, id))  # Remove product using the actual ID
                     done = input()
+
                     
                 else:
                     print("Ogiltig produkt")
                     sleep(0.3)
+                    
 
             elif choice == "T": #ta bort
                 if 1 <= index <= len(products):  # Ensure the index is within the valid range
@@ -194,12 +232,19 @@ while True:
                     id = selected_product['id']  # Extract the actual ID of the product
 
                     print(remove_product(products, id))  # Remove product using the actual ID
-                    sleep(0.5)            
+                    sleep(0.5)    
+                    save_info(products)
+        
 
                 else:
                     print("Ogiltig produkt")
                     sleep(0.3)
+
+    
         
     except ValueError:
         print("Välj en produkt med siffor")
         sleep(0.5)
+
+        
+    
